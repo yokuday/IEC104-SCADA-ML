@@ -104,8 +104,10 @@ ocsvm = DecisionTreeRegressor(criterion='squared_error', random_state=1, splitte
 # Define the parameter grid for the model ( this is for decision tree regressor )
 param_grid = {
     'criterion': ['squared_error', 'friedman_mse', 'mae'],
-    'max_depth': [10, 20, 30, 40, 50],
-    'max_features': [3, 4, 5, 6, 7]
+    'max_depth': [50, 60, 70, 80, 90],
+    'max_features': [3, 4, 5, 6, 7],
+    'splitter': ['random'],
+    'random_state': [1]
 }
 
 # Initialize the GridSearchCV
