@@ -9,6 +9,7 @@ from sklearn.model_selection import GridSearchCV, cross_val_score
 from sklearn.cluster import KMeans
 from sklearn.metrics import recall_score
 from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import cross_val_score
 
 import pickle
 
@@ -94,17 +95,35 @@ y_train = train_df_scaled[:, -1]
 X_test = test_df_scaled[:, :-1]
 y_test = test_df_scaled[:, -1]
 
-# Train the OCSVM model on the training data
+# Train the OCSVM model on the training data ( parameters were gotten from cross validating )
 #ocsvm = OneClassSVM(kernel="rbf", nu=0.5, gamma=0.0001)
 ocsvm = DecisionTreeRegressor(criterion='squared_error', random_state=1, splitter='random', max_depth=50, max_features=5)
 #ocsvm = KMeans(1)
 #ocsvm = Ridge(alpha=2, fit_intercept=False)
 
+# Define the parameter grid for the model ( this is for decision tree regressor )
+param_grid = {
+    'criterion': ['squared_error', 'friedman_mse', 'mae'],
+    'max_depth': [10, 20, 30, 40, 50],
+    'max_features': [3, 4, 5, 6, 7]
+}
+
+# Initialize the GridSearchCV
+grid_search = GridSearchCV(DecisionTreeRegressor(random_state=1), param_grid, cv=5, scoring='f1')
+
+# Perform the grid search
+grid_search.fit(X_train, y_train)
+
+# Get the best model
+best_model = grid_search.best_estimator_
+
+model = best_model
+
 #ocsvm.fit(X_train)
-ocsvm.fit(X_train, y_train)
+model.fit(X_train, y_train)
 
 # Predict the labels of the testing data
-y_pred = ocsvm.predict(X_test)
+y_pred = model.predict(X_test)
 
 y_test = (y_test >= 0).astype(int)
 y_pred = (y_pred >= 0).astype(int)
@@ -126,4 +145,4 @@ tpr_0 = recall_score(y_test, y_pred, pos_label=0)
 print(tpr_0)
 
 with open('model.pkl', 'wb') as f:
-    pickle.dump(ocsvm, f)
+    pickle.dump(model, f)
